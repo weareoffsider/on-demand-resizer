@@ -92,7 +92,7 @@ module.exports.srcset = function(image, sizes, config) {
   var instructions = sizes.split(",").map(function(size) {
     var xyWidth = size.split(":");
     var dimensions = xyWidth[0].split("x");
-    var breakpoint = parseInt(xyWidth[1]);
+    var breakpoint = xyWidth[1] ? parseInt(xyWidth[1]) : null;
     var size = {
       x: parseInt(dimensions[0]),
       y: dimensions[1] ? parseInt(dimensions[1]) : null
@@ -113,7 +113,11 @@ module.exports.srcset = function(image, sizes, config) {
 
   return Promise.all(resizePromises).then(function(fileNames) {
     return fileNames.map(function(name, ix) {
-      return name + " " + instructions[ix].srcSetBreakpoint + "w";
+      if (instructions[ix].srcSetBreakpoint) {
+        return name + " " + instructions[ix].srcSetBreakpoint + "w";
+      } else {
+        return name;
+      }
     }).join(",");
   });
 }
