@@ -15,7 +15,11 @@ module.exports.resize = function(file, ops, config) {
   return new Promise(function(resolve, reject) {
 
     var shasum = crypto.createHash("sha1");
-    ops.path = file;
+
+    var imgSrc = file.src || file;
+    ops.focus = file.focus || ops.focus || null;
+
+    ops.path = imgSrc;
     if (!ops.quality) ops.quality = config.defaultQuality;
     optsString = JSON.stringify(ops);
     shasum.update(optsString);
@@ -32,7 +36,7 @@ module.exports.resize = function(file, ops, config) {
         if (err) { // rebuild image
           console.log(optsString, " :: image does not exist, rebuild");
 
-          var stream = gm(config.sourcePath + "/" + file);
+          var stream = gm(config.sourcePath + "/" + ops.pat
           stream = stream.autoOrient().noProfile();
           stream.size(function(err, orig) {
             for (var i = 0; i < config.pipeline.length; i++) {

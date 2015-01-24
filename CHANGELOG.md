@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.1.4 - 2015-01-25
+### Changed
+- resize function supports {src: path, focus: []} setup
+
 ## 0.1.3 - 2015-01-25
 ### Fixed
 - srcset breakpoint omits width clause if no breakpoint supplied
