@@ -7,6 +7,7 @@ var fs = require("fs");
 var Promise = require("promise");
 var async = require("async");
 var Imagemin = require("imagemin");
+var mkdirp = require("mkdirp");
 var _ = require("lodash");
 
 
@@ -50,12 +51,16 @@ module.exports.resize = function(file, ops, config) {
                 .use(Imagemin.svgo())
                 .use(Imagemin.optipng({optimizationLevel: 3}))
                 .run(function(err, files) {
-                  fs.writeFile(dest, files[0].contents, function(err) {
-                    if (err) {
-                      reject(err)
-                    } else {
-                      resolve(destUrl);
-                    }
+                  mkdirp(path.dirname(dest), function(err) {
+                    if (err) { reject(err) };
+
+                    fs.writeFile(dest, files[0].contents, function(err) {
+                      if (err) {
+                        reject(err)
+                      } else {
+                        resolve(destUrl);
+                      }
+                    });
                   });
                 });
             });

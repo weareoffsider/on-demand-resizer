@@ -1,6 +1,6 @@
 {
   "name": "on-demand-resizer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Resize Images on Demand through Node",
   "main": "index.js",
   "scripts": {
