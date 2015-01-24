@@ -1,0 +1,49 @@
+var OnDemandResizer = require("./index.js");
+var thenJade = require("then-jade");
+var Promise = require("promise");
+
+
+var resizer = OnDemandResizer({
+  sourceType: "local",
+  sourcePath: __dirname,
+  destType: "local",
+  destPath: __dirname + "/outputtest",
+  urlBase: "/uploads",
+  defaultQuality: 80,
+});
+
+
+// resizer.resize("test.jpg", {
+//   height: 450,
+//   width: 300
+// }).then(function(resultLocation) {
+//   console.log(resultLocation);
+  
+// });
+
+var renderImage = function(ops) {
+  return resizer.resize("test.jpg", ops);
+}
+
+var getSrcSet = function(file, sizes) {
+  sizes = sizes.split(",").map(function(num) {
+    return parseInt(num);
+  });
+
+  sizePromises = sizes.map(function(width) {
+    return resizer.resize(file, {width: width})
+  });
+
+  return Promise.all(sizePromises).then(function(fileNames) {
+    return fileNames.map(function(name, ix) {
+      return name + " " + sizes[ix]
+    }).join(",");
+  });
+}
+
+thenJade.renderFile("async-test.jade", {
+  srcset: resizer.srcset,
+  renderImage: renderImage
+}, function(err, result) {
+  console.log(err, result);
+});

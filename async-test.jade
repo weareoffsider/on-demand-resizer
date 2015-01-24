@@ -1,0 +1,9 @@
+doctype
+html
+  head
+    title Async Render Test
+  body
+    div.container(
+      data-srcset=yield (srcset({src: "test.jpg", focus: [0.25, 0.5]}, "200x100:400,400x300:600,600x800:700"))
+    )
+      img(src=yield (renderImage({width: 800, height: 600, crop: "focus", focus: [1, 0.25]})))
