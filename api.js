@@ -36,7 +36,7 @@ module.exports.resize = function(file, ops, config) {
         if (err) { // rebuild image
           console.log(optsString, " :: image does not exist, rebuild");
 
-          var stream = gm(config.sourcePath + "/" + ops.pat
+          var stream = gm(config.sourcePath + "/" + ops.path);
           stream = stream.autoOrient().noProfile();
           stream.size(function(err, orig) {
             for (var i = 0; i < config.pipeline.length; i++) {

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.1.5 - 2015-01-25
+### Fixed
+- typo
+
 ## 0.1.4 - 2015-01-25
 ### Changed
 - resize function supports {src: path, focus: []} setup
