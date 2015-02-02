@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.1.6 - 2015-01-25
+### Added
+- when the source image is not found, return
+  "baseUrl + /source-image-not-found.jpg" instead of crashing
+
 ## 0.1.5 - 2015-01-25
 ### Fixed
 - typo

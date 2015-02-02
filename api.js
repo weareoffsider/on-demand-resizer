@@ -27,6 +27,7 @@ module.exports.resize = function(file, ops, config) {
     var ext = path.extname(file);
     var hash = shasum.digest("hex");
     var outFile = hash + ext;
+    var source = config.sourcePath + "/" + ops.path;
     var dest = config.destPath + "/" + outFile;
     var destUrl = config.urlBase + "/" + outFile;
 
@@ -35,40 +36,46 @@ module.exports.resize = function(file, ops, config) {
       fs.readFile(dest, function(err, data) {
         if (err) { // rebuild image
           console.log(optsString, " :: image does not exist, rebuild");
-
-          var stream = gm(config.sourcePath + "/" + ops.path);
-          stream = stream.autoOrient().noProfile();
-          stream.size(function(err, orig) {
-            for (var i = 0; i < config.pipeline.length; i++) {
-              var stage = config.pipeline[i];
-              var result = stage(orig, ops, stream);
-              if (result) {
-                stream = result;
-              }
+          fs.readFile(source, function(err, data) {
+            if (err) {
+              console.error("Source image not found :: ", source);
+              return resolve(config.urlBase + "/source-image-not-found.jpg");
             }
 
-            stream.toBuffer(function(err, image) {
-              var imgmin = new Imagemin()
-                .src(image)
-                .use(Imagemin.gifsicle({interlaced: true}))
-                .use(Imagemin.jpegtran({progressive: true}))
-                .use(Imagemin.svgo())
-                .use(Imagemin.optipng({optimizationLevel: 3}))
-                .run(function(err, files) {
-                  mkdirp(path.dirname(dest), function(err) {
-                    if (err) { reject(err) };
+            var stream = gm(source);
+            stream = stream.autoOrient().noProfile();
+            stream.size(function(err, orig) {
+              for (var i = 0; i < config.pipeline.length; i++) {
+                var stage = config.pipeline[i];
+                var result = stage(orig, ops, stream);
+                if (result) {
+                  stream = result;
+                }
+              }
 
-                    fs.writeFile(dest, files[0].contents, function(err) {
-                      if (err) {
-                        reject(err)
-                      } else {
-                        resolve(destUrl);
-                      }
+              stream.toBuffer(function(err, image) {
+                var imgmin = new Imagemin()
+                  .src(image)
+                  .use(Imagemin.gifsicle({interlaced: true}))
+                  .use(Imagemin.jpegtran({progressive: true}))
+                  .use(Imagemin.svgo())
+                  .use(Imagemin.optipng({optimizationLevel: 3}))
+                  .run(function(err, files) {
+                    mkdirp(path.dirname(dest), function(err) {
+                      if (err) { reject(err) };
+
+                      fs.writeFile(dest, files[0].contents, function(err) {
+                        if (err) {
+                          reject(err)
+                        } else {
+                          resolve(destUrl);
+                        }
+                      });
                     });
                   });
-                });
-            });
+              });
 
+            });
           });
         } else { // return url
           console.log(optsString, " :: image exists, returning");
