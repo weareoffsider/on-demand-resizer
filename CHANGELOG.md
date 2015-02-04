@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.1.7 - 2015-02-04
+### Added
+- allow use of imageMagick through config options.
+
 ## 0.1.6 - 2015-01-25
 ### Added
 - when the source image is not found, return

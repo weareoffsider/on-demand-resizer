@@ -15,6 +15,11 @@ module.exports.resize = function(file, ops, config) {
   return new Promise(function(resolve, reject) {
 
     var shasum = crypto.createHash("sha1");
+    if (config.imageMagick) {
+      var sizer = gm.subClass({imageMagick: true});
+    } else {
+      var sizer = gm;
+    }
 
     var imgSrc = file.src || file;
     ops.focus = file.focus || ops.focus || null;
@@ -42,7 +47,7 @@ module.exports.resize = function(file, ops, config) {
               return resolve(config.urlBase + "/source-image-not-found.jpg");
             }
 
-            var stream = gm(source);
+            var stream = sizer(source);
             stream = stream.autoOrient().noProfile();
             stream.size(function(err, orig) {
               for (var i = 0; i < config.pipeline.length; i++) {
