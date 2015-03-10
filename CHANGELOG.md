@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.2.1 - 2015-03-11
+### Fixed
+- cache reference incorrect
+
 ## 0.2.0 - 2015-03-11
 ### Added
 - resizes registered with a progress cache to protect against multiple resizes

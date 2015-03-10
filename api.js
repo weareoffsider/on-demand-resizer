@@ -54,7 +54,7 @@ module.exports.resize = function(file, ops, config) {
         if (err) { // rebuild image
           if (progressCache[hash]) {
             console.log(hash, " :: image in progress, awaiting");
-            progressCache.push(function(err, complete) {
+            progressCache[hash].push(function(err, complete) {
               if (err) {
                 reject(err)
               } else {
