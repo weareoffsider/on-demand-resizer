@@ -11,6 +11,17 @@ var mkdirp = require("mkdirp");
 var _ = require("lodash");
 
 
+
+var progressCache = {};
+var doneCache = {};
+
+var flushProgressCache = function(err, hash) {
+  if (!progressCache[hash]) return;
+  progressCache[hash].forEach(function(cb) { cb(err, hash) });
+  delete progressCache[hash];
+};
+
+
 module.exports.resize = function(file, ops, config) {
   return new Promise(function(resolve, reject) {
 
@@ -36,11 +47,26 @@ module.exports.resize = function(file, ops, config) {
     var dest = config.destPath + "/" + outFile;
     var destUrl = config.urlBase + "/" + outFile;
 
+
     switch (config.sourceType) {
       case "local":
       fs.readFile(dest, function(err, data) {
         if (err) { // rebuild image
-          console.log(optsString, " :: image does not exist, rebuild");
+          if (progressCache[hash]) {
+            console.log(hash, " :: image in progress, awaiting");
+            progressCache.push(function(err, complete) {
+              if (err) {
+                reject(err)
+              } else {
+                resolve(destUrl);
+              }
+            });
+            return;
+          } else {
+            console.log(hash, " :: image does not exist, rebuild");
+            progressCache[hash] = [];
+          }
+
           fs.readFile(source, function(err, data) {
             if (err) {
               console.error("Source image not found :: ", source);
@@ -75,6 +101,7 @@ module.exports.resize = function(file, ops, config) {
                         } else {
                           resolve(destUrl);
                         }
+                        flushProgressCache(err, hash);
                       });
                     });
                   });
@@ -83,7 +110,7 @@ module.exports.resize = function(file, ops, config) {
             });
           });
         } else { // return url
-          console.log(optsString, " :: image exists, returning");
+          console.log(hash, " :: image exists, returning");
 
           resolve(destUrl);
         }
