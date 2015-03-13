@@ -70,6 +70,7 @@ module.exports.resize = function(file, ops, config) {
           fs.readFile(source, function(err, data) {
             if (err) {
               console.error("Source image not found :: ", source);
+              flushProgressCache(err, hash);
               return resolve(config.urlBase + "/source-image-not-found.jpg");
             }
 

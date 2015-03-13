@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.2.2 - 2015-03-13
+### Fixed
+- flush cache if source file not found
+
 ## 0.2.1 - 2015-03-11
 ### Fixed
 - cache reference incorrect
