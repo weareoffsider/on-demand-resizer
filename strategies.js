@@ -1,6 +1,3 @@
-var Imagemin = require("imagemin");
-
-
 module.exports.focusCrop = function(orig, ops, stream) {
   if (!ops.crop || ops.crop !== "focus") return;
 

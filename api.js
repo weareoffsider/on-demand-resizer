@@ -1,14 +1,15 @@
 var Promise = require("promise");
-var gm = require("gm");
-var redis = require("redis");
 var crypto = require("crypto");
 var path = require("path");
-var fs = require("fs");
-var Promise = require("promise");
-var async = require("async");
-var Imagemin = require("imagemin");
-var mkdirp = require("mkdirp");
 var _ = require("lodash");
+var stableStringify = require("json-stable-stringify");
+
+if (!process.browser) {
+  var fs = require("fs");
+  var gm = require("gm");
+  var Imagemin = require("imagemin");
+  var mkdirp = require("mkdirp");
+}
 
 
 
@@ -23,107 +24,108 @@ var flushProgressCache = function(err, hash) {
 
 
 module.exports.resize = function(file, ops, config) {
-  return new Promise(function(resolve, reject) {
+  var shasum = crypto.createHash("sha1");
+  var imgSrc = file.src || file;
+  ops.focus = file.focus || ops.focus || null;
 
-    var shasum = crypto.createHash("sha1");
-    if (config.imageMagick) {
-      var sizer = gm.subClass({imageMagick: true});
-    } else {
-      var sizer = gm;
-    }
+  ops.path = imgSrc;
+  if (!ops.quality) ops.quality = config.defaultQuality;
+  optsString = stableStringify(ops);
+  shasum.update(optsString);
 
-    var imgSrc = file.src || file;
-    ops.focus = file.focus || ops.focus || null;
+  var ext = path.extname(file);
+  var hash = shasum.digest("hex");
+  var outFile = hash + ext;
+  var destUrl = config.urlBase + "/" + outFile;
 
-    ops.path = imgSrc;
-    if (!ops.quality) ops.quality = config.defaultQuality;
-    optsString = JSON.stringify(ops);
-    shasum.update(optsString);
+  if (process.browser) {
+    return destUrl;
+  }
 
-    var ext = path.extname(file);
-    var hash = shasum.digest("hex");
-    var outFile = hash + ext;
-    var source = config.sourcePath + "/" + ops.path;
-    var dest = config.destPath + "/" + outFile;
-    var destUrl = config.urlBase + "/" + outFile;
+  // perform actual resize
 
+  var source = config.sourcePath + "/" + ops.path;
+  var dest = config.destPath + "/" + outFile;
+  if (config.imageMagick) {
+    var sizer = gm.subClass({imageMagick: true});
+  } else {
+    var sizer = gm;
+  }
 
-    switch (config.sourceType) {
-      case "local":
-      fs.readFile(dest, function(err, data) {
-        if (err) { // rebuild image
-          if (progressCache[hash]) {
-            console.log(hash, " :: image in progress, awaiting");
-            progressCache[hash].push(function(err, complete) {
-              if (err) {
-                reject(err)
-              } else {
-                resolve(destUrl);
-              }
-            });
+  switch (config.sourceType) {
+    case "local":
+    fs.readFile(dest, function(err, data) {
+      if (err) { // rebuild image
+        if (progressCache[hash]) {
+          console.log(hash, " :: image in progress, awaiting");
+          progressCache[hash].push(function(err, complete) {
+            if (err) {
+              throw new Error(err);
+            } else {
+            }
+          });
+          return;
+        } else {
+          console.log(hash, " :: image does not exist, rebuild");
+          progressCache[hash] = [];
+        }
+
+        fs.readFile(source, function(err, data) {
+          if (err) {
+            console.error("Source image not found :: ", source);
+            flushProgressCache(err, hash);
             return;
-          } else {
-            console.log(hash, " :: image does not exist, rebuild");
-            progressCache[hash] = [];
           }
 
-          fs.readFile(source, function(err, data) {
-            if (err) {
-              console.error("Source image not found :: ", source);
-              flushProgressCache(err, hash);
-              return resolve(config.urlBase + "/source-image-not-found.jpg");
+          var stream = sizer(source);
+          stream = stream.autoOrient().noProfile();
+          stream.size(function(err, orig) {
+            for (var i = 0; i < config.pipeline.length; i++) {
+              var stage = config.pipeline[i];
+              var result = stage(orig, ops, stream);
+              if (result) {
+                stream = result;
+              }
             }
 
-            var stream = sizer(source);
-            stream = stream.autoOrient().noProfile();
-            stream.size(function(err, orig) {
-              for (var i = 0; i < config.pipeline.length; i++) {
-                var stage = config.pipeline[i];
-                var result = stage(orig, ops, stream);
-                if (result) {
-                  stream = result;
-                }
-              }
+            stream.toBuffer(function(err, image) {
+              var imgmin = new Imagemin()
+                .src(image)
+                .use(Imagemin.gifsicle({interlaced: true}))
+                .use(Imagemin.jpegtran({progressive: true}))
+                .use(Imagemin.svgo())
+                .use(Imagemin.optipng({optimizationLevel: 3}))
+                .run(function(err, files) {
+                  mkdirp(path.dirname(dest), function(err) {
+                    if (err) { reject(err) };
 
-              stream.toBuffer(function(err, image) {
-                var imgmin = new Imagemin()
-                  .src(image)
-                  .use(Imagemin.gifsicle({interlaced: true}))
-                  .use(Imagemin.jpegtran({progressive: true}))
-                  .use(Imagemin.svgo())
-                  .use(Imagemin.optipng({optimizationLevel: 3}))
-                  .run(function(err, files) {
-                    mkdirp(path.dirname(dest), function(err) {
-                      if (err) { reject(err) };
-
-                      fs.writeFile(dest, files[0].contents, function(err) {
-                        if (err) {
-                          reject(err)
-                        } else {
-                          resolve(destUrl);
-                        }
-                        flushProgressCache(err, hash);
-                      });
+                    fs.writeFile(dest, files[0].contents, function(err) {
+                      if (err) {
+                        throw new Error(err);
+                      } else {
+                        console.log(hash, " :: image complete");
+                      }
+                      flushProgressCache(err, hash);
                     });
                   });
-              });
-
+                });
             });
+
           });
-        } else { // return url
-          console.log(hash, " :: image exists, returning");
+        });
+      } else { // return url
+        console.log(hash, " :: image exists, returning");
+      }
+    });
+    break;
 
-          resolve(destUrl);
-        }
-      });
-      break;
+    default:
+    console.error("Unsupported source type " + config.sourceType);
+    break;
+  }
 
-      default:
-      console.error("Unsupported source type " + config.sourceType);
-      reject(true);
-    }
+  return destUrl;
 
-  });
 }
 
 
@@ -151,17 +153,15 @@ module.exports.srcset = function(image, sizes, config) {
     };
   });
 
-  resizePromises = instructions.map(function(instruction) {
+  var fileNames = instructions.map(function(instruction) {
     return module.exports.resize(imgSrc, instruction, config);
   });
 
-  return Promise.all(resizePromises).then(function(fileNames) {
-    return fileNames.map(function(name, ix) {
-      if (instructions[ix].srcSetBreakpoint) {
-        return name + " " + instructions[ix].srcSetBreakpoint + "w";
-      } else {
-        return name;
-      }
-    }).join(",");
-  });
+  return fileNames.map(function(name, ix) {
+    if (instructions[ix].srcSetBreakpoint) {
+      return name + " " + instructions[ix].srcSetBreakpoint + "w";
+    } else {
+      return name;
+    }
+  }).join(",");
 }

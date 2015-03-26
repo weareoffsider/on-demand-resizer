@@ -1,14 +1,5 @@
-var gm = require("gm");
-var redis = require("redis");
-var crypto = require("crypto");
-var path = require("path");
-var fs = require("fs");
-var Promise = require("promise");
-var async = require("async");
-
 var strategies = require("./strategies.js");
 var api = require("./api.js");
-var Imagemin = require("imagemin");
 var _ = require("lodash");
 
 

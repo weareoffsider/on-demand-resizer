@@ -26,22 +26,6 @@ var renderImage = function(ops) {
   return resizer.resize("test.jpg", ops);
 }
 
-var getSrcSet = function(file, sizes) {
-  sizes = sizes.split(",").map(function(num) {
-    return parseInt(num);
-  });
-
-  sizePromises = sizes.map(function(width) {
-    return resizer.resize(file, {width: width})
-  });
-
-  return Promise.all(sizePromises).then(function(fileNames) {
-    return fileNames.map(function(name, ix) {
-      return name + " " + sizes[ix]
-    }).join(",");
-  });
-}
-
 thenJade.renderFile("async-test.jade", {
   srcset: resizer.srcset,
   renderImage: renderImage

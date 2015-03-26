@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.3.0 - 2015-03-27
+### Changed
+- Stopped using promises, predicted result names are returned regardless of
+  resize results so code can be used within synchronous render cycles, will
+  be experimenting with this in context of React rendering in a client split.
+
 ## 0.2.2 - 2015-03-13
 ### Fixed
 - flush cache if source file not found
