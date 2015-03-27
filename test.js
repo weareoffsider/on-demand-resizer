@@ -1,6 +1,5 @@
 var OnDemandResizer = require("./index.js");
 var thenJade = require("then-jade");
-var Promise = require("promise");
 
 
 var resizer = OnDemandResizer({

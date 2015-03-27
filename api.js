@@ -1,4 +1,3 @@
-var Promise = require("promise");
 var crypto = require("crypto");
 var path = require("path");
 var _ = require("lodash");

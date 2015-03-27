@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.3.1 - 2015-03-27
+### Fixed
+- Removed deprecated promise requires.
+
 ## 0.3.0 - 2015-03-27
 ### Changed
 - Stopped using promises, predicted result names are returned regardless of
