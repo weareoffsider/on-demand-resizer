@@ -1,9 +1,9 @@
-var crypto = require("crypto");
+var JSHashes = require("jshashes");
 var path = require("path");
 var _ = require("lodash");
 var stableStringify = require("json-stable-stringify");
 
-if (!process.browser) {
+if (typeof window == "undefined") {
   var fs = require("fs");
   var gm = require("gm");
   var Imagemin = require("imagemin");
@@ -23,21 +23,19 @@ var flushProgressCache = function(err, hash) {
 
 
 module.exports.resize = function(file, ops, config) {
-  var shasum = crypto.createHash("sha1");
   var imgSrc = file.src || file;
   ops.focus = file.focus || ops.focus || null;
 
   ops.path = imgSrc;
   if (!ops.quality) ops.quality = config.defaultQuality;
   optsString = stableStringify(ops);
-  shasum.update(optsString);
 
+  var hash = new JSHashes.SHA1().hex(optsString);
   var ext = path.extname(file);
-  var hash = shasum.digest("hex");
   var outFile = hash + ext;
   var destUrl = config.urlBase + "/" + outFile;
 
-  if (process.browser) {
+  if (typeof window != "undefined") {
     return destUrl;
   }
 

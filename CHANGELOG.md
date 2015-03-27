@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.3.2 - 2015-03-27
+### Changed
+- Changed SHA1 hashing to be implemented by jshashes, for client support and
+  small browserify runtime
+
 ## 0.3.1 - 2015-03-27
 ### Fixed
 - Removed deprecated promise requires.
