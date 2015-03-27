@@ -16,8 +16,6 @@ var progressCache = {};
 var doneCache = {};
 
 var flushProgressCache = function(err, hash) {
-  if (!progressCache[hash]) return;
-  progressCache[hash].forEach(function(cb) { cb(err, hash) });
   delete progressCache[hash];
 };
 
@@ -41,6 +39,10 @@ module.exports.resize = function(file, ops, config) {
 
   // perform actual resize
 
+  if (doneCache[hash] || progressCache[hash]) {
+    return destUrl;
+  }
+
   var source = config.sourcePath + "/" + ops.path;
   var dest = config.destPath + "/" + outFile;
   if (config.imageMagick) {
@@ -48,24 +50,14 @@ module.exports.resize = function(file, ops, config) {
   } else {
     var sizer = gm;
   }
+  console.log(hash, " :: image starting");
+  progressCache[hash] = true;
 
   switch (config.sourceType) {
     case "local":
     fs.readFile(dest, function(err, data) {
       if (err) { // rebuild image
-        if (progressCache[hash]) {
-          console.log(hash, " :: image in progress, awaiting");
-          progressCache[hash].push(function(err, complete) {
-            if (err) {
-              throw new Error(err);
-            } else {
-            }
-          });
-          return;
-        } else {
-          console.log(hash, " :: image does not exist, rebuild");
-          progressCache[hash] = [];
-        }
+        console.log(hash, " :: image does not exist, building");
 
         fs.readFile(source, function(err, data) {
           if (err) {
@@ -103,6 +95,7 @@ module.exports.resize = function(file, ops, config) {
                         console.log(hash, " :: image complete");
                       }
                       flushProgressCache(err, hash);
+                      doneCache[hash] = destUrl;
                     });
                   });
                 });
@@ -112,6 +105,7 @@ module.exports.resize = function(file, ops, config) {
         });
       } else { // return url
         console.log(hash, " :: image exists, returning");
+        doneCache[hash] = destUrl;
       }
     });
     break;

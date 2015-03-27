@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.3.3 - 2015-03-28
+### Changed
+- Changed to in memory cache of done and progress images, so resizing will not
+  even check the filesystem if an image record is in the cache. Attempt to
+  improve the current execution, which is way less efficient than it should be.
+
 ## 0.3.2 - 2015-03-27
 ### Changed
 - Changed SHA1 hashing to be implemented by jshashes, for client support and
