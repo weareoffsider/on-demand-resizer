@@ -11,6 +11,7 @@ module.exports = function(config) {
     destPath: __dirname,
     urlBase: "/",
     defaultQuality: null,
+    workers: 5,
     pipeline: [
       strategies.focusCrop,
       strategies.resizeSoft,

@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.4.0 - 2015-04-02
+### Added
+- Added worker setting to set an upper limit to the number of concurrent
+  resizes being done.
+
 ## 0.3.3 - 2015-03-28
 ### Changed
 - Changed to in memory cache of done and progress images, so resizing will not

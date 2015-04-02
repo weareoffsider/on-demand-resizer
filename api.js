@@ -13,11 +13,19 @@ if (typeof window == "undefined") {
 
 
 var progressCache = {};
+var processing = {};
 var doneCache = {};
+var processQueue = [];
 
-var flushProgressCache = function(err, hash) {
+var flushProgressCache = function(err, hash, workerLimit) {
   delete progressCache[hash];
+  delete processing[hash];
+
+  if (processQueue.length > 0) {
+    processQueue.pop()();
+  };
 };
+
 
 
 module.exports.resize = function(file, ops, config) {
@@ -50,69 +58,80 @@ module.exports.resize = function(file, ops, config) {
   } else {
     var sizer = gm;
   }
-  console.log(hash, " :: image starting");
   progressCache[hash] = true;
 
-  switch (config.sourceType) {
-    case "local":
-    fs.readFile(dest, function(err, data) {
-      if (err) { // rebuild image
-        console.log(hash, " :: image does not exist, building");
+  var doResize = function() {
+    processing[hash] = true;
+    console.log(hash, " :: image starting");
+    switch (config.sourceType) {
+      case "local":
+      fs.readFile(dest, function(err, data) {
+        if (err) { // rebuild image
+          console.log(hash, " :: image does not exist, building");
 
-        fs.readFile(source, function(err, data) {
-          if (err) {
-            console.error("Source image not found :: ", source);
-            flushProgressCache(err, hash);
-            return;
-          }
-
-          var stream = sizer(source);
-          stream = stream.autoOrient().noProfile();
-          stream.size(function(err, orig) {
-            for (var i = 0; i < config.pipeline.length; i++) {
-              var stage = config.pipeline[i];
-              var result = stage(orig, ops, stream);
-              if (result) {
-                stream = result;
-              }
+          fs.readFile(source, function(err, data) {
+            if (err) {
+              console.error("Source image not found :: ", source);
+              flushProgressCache(err, hash, config.workers);
+              return;
             }
 
-            stream.toBuffer(function(err, image) {
-              var imgmin = new Imagemin()
-                .src(image)
-                .use(Imagemin.gifsicle({interlaced: true}))
-                .use(Imagemin.jpegtran({progressive: true}))
-                .use(Imagemin.svgo())
-                .use(Imagemin.optipng({optimizationLevel: 3}))
-                .run(function(err, files) {
-                  mkdirp(path.dirname(dest), function(err) {
-                    if (err) { reject(err) };
+            var stream = sizer(source);
+            stream = stream.autoOrient().noProfile();
+            stream.size(function(err, orig) {
+              for (var i = 0; i < config.pipeline.length; i++) {
+                var stage = config.pipeline[i];
+                var result = stage(orig, ops, stream);
+                if (result) {
+                  stream = result;
+                }
+              }
 
-                    fs.writeFile(dest, files[0].contents, function(err) {
-                      if (err) {
-                        throw new Error(err);
-                      } else {
-                        console.log(hash, " :: image complete");
-                      }
-                      flushProgressCache(err, hash);
-                      doneCache[hash] = destUrl;
+              stream.toBuffer(function(err, image) {
+                var imgmin = new Imagemin()
+                  .src(image)
+                  .use(Imagemin.gifsicle({interlaced: true}))
+                  .use(Imagemin.jpegtran({progressive: true}))
+                  .use(Imagemin.svgo())
+                  .use(Imagemin.optipng({optimizationLevel: 3}))
+                  .run(function(err, files) {
+                    mkdirp(path.dirname(dest), function(err) {
+                      if (err) { reject(err) };
+
+                      fs.writeFile(dest, files[0].contents, function(err) {
+                        if (err) {
+                          throw new Error(err);
+                        } else {
+                          console.log(hash, " :: image complete");
+                        }
+                        flushProgressCache(err, hash, config.workers);
+                        doneCache[hash] = destUrl;
+                      });
                     });
                   });
-                });
+              });
+
             });
-
           });
-        });
-      } else { // return url
-        console.log(hash, " :: image exists, returning");
-        doneCache[hash] = destUrl;
-      }
-    });
-    break;
+        } else { // return url
+          console.log(hash, " :: image exists, returning");
+          flushProgressCache(err, hash, config.workers);
+          doneCache[hash] = destUrl;
+        }
+      });
+      break;
 
-    default:
-    console.error("Unsupported source type " + config.sourceType);
-    break;
+      default:
+      console.error("Unsupported source type " + config.sourceType);
+      break;
+    };
+  }
+
+  if (Object.keys(processing).length >= config.workers) {
+    console.log(hash, " :: image queueing");
+    processQueue.push(doResize);
+  } else {
+    doResize();
   }
 
   return destUrl;
