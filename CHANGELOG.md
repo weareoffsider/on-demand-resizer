@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.5.0 - 2016-05-10
+### Changed
+- Update all dependencies. Changes should be internal only. Pinned dependency
+  versions.
+
 ## 0.4.0 - 2015-04-02
 ### Added
 - Added worker setting to set an upper limit to the number of concurrent

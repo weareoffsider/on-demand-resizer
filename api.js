@@ -7,6 +7,11 @@ if (typeof window == "undefined") {
   var fs = require("fs");
   var gm = require("gm");
   var Imagemin = require("imagemin");
+  var ImageminGifsicle = require("imagemin-gifsicle");
+  var ImageminJpegtran = require("imagemin-jpegtran");
+  var ImageminMozJpeg = require("imagemin-mozjpeg");
+  var ImageminSvgo = require("imagemin-svgo");
+  var ImageminOptipng = require("imagemin-optipng");
   var mkdirp = require("mkdirp");
 }
 
@@ -88,27 +93,30 @@ module.exports.resize = function(file, ops, config) {
               }
 
               stream.toBuffer(function(err, image) {
-                var imgmin = new Imagemin()
-                  .src(image)
-                  .use(Imagemin.gifsicle({interlaced: true}))
-                  .use(Imagemin.jpegtran({progressive: true}))
-                  .use(Imagemin.svgo())
-                  .use(Imagemin.optipng({optimizationLevel: 3}))
-                  .run(function(err, files) {
-                    mkdirp(path.dirname(dest), function(err) {
-                      if (err) { reject(err) };
+                Imagemin.buffer(image, {
+                  plugins: [
+                    ImageminGifsicle({interlaced: true}),
+                    ImageminMozJpeg(),
+                    ImageminSvgo(),
+                    ImageminOptipng({optimizationLevel: 3}),
+                  ],
+                }).then(function(buffer) {
+                  mkdirp(path.dirname(dest), function(err) {
+                    if (err) { reject(err) };
 
-                      fs.writeFile(dest, files[0].contents, function(err) {
-                        if (err) {
-                          throw new Error(err);
-                        } else {
-                          console.log(hash, " :: image complete");
-                        }
-                        flushProgressCache(err, hash, config.workers);
-                        doneCache[hash] = destUrl;
-                      });
+                    fs.writeFile(dest, buffer.contents, function(err) {
+                      if (err) {
+                        throw new Error(err);
+                      } else {
+                        console.log(hash, " :: image complete");
+                      }
+                      flushProgressCache(err, hash, config.workers);
+                      doneCache[hash] = destUrl;
                     });
                   });
+                }).catch(function(err) {
+                  console.error(err);
+                });
               });
 
             });
