@@ -72,7 +72,7 @@ module.exports.resize = function(file, ops, config) {
       case "local":
       fs.readFile(dest, function(err, data) {
         if (err) { // rebuild image
-          console.log(hash, " :: image does not exist, building");
+          console.log(hash, " :: image does not exist, building: ", source);
 
           fs.readFile(source, function(err, data) {
             if (err) {
@@ -93,6 +93,11 @@ module.exports.resize = function(file, ops, config) {
               }
 
               stream.toBuffer(function(err, image) {
+                if (err) {
+                  console.error("Resize Failed :: ", source);
+                  flushProgressCache(err, hash, config.workers);
+                  return;
+                }
                 Imagemin.buffer(image, {
                   plugins: [
                     ImageminGifsicle({interlaced: true}),
@@ -103,8 +108,7 @@ module.exports.resize = function(file, ops, config) {
                 }).then(function(buffer) {
                   mkdirp(path.dirname(dest), function(err) {
                     if (err) { reject(err) };
-
-                    fs.writeFile(dest, buffer.contents, function(err) {
+                    fs.writeFile(dest, buffer, function(err) {
                       if (err) {
                         throw new Error(err);
                       } else {
@@ -116,6 +120,7 @@ module.exports.resize = function(file, ops, config) {
                   });
                 }).catch(function(err) {
                   console.error(err);
+                  flushProgressCache(err, hash, config.workers);
                 });
               });
 

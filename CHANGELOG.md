@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.5.1 - 2016-06-06
+### Fixed
+- Fixed collection of buffer. Improved recovery on error so queue will continue.
+
 ## 0.5.0 - 2016-05-10
 ### Changed
 - Update all dependencies. Changes should be internal only. Pinned dependency
