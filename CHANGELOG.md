@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.5.2 - 2016-06-06
+### Fixed
+- Add missing browser passovers for browserify.
+
 ## 0.5.1 - 2016-06-06
 ### Fixed
 - Fixed collection of buffer. Improved recovery on error so queue will continue.

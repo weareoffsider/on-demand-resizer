@@ -1,6 +1,6 @@
 {
   "name": "on-demand-resizer",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Resize Images on Demand through Node",
   "main": "index.js",
   "scripts": {
@@ -24,6 +24,11 @@
   "browser": {
     "gm": "./blank.js",
     "imagemin": "./blank.js",
+    "imagemin-gifsicle": "./blank.js",
+    "imagemin-mozjpeg": "./blank.js",
+    "imagemin-jpegtran": "./blank.js",
+    "imagemin-svgo": "./blank.js",
+    "imagemin-optipng": "./blank.js",
     "mkdirp": "./blank.js"
   },
   "devDependencies": {
