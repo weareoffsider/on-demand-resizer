@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.5.3 - 2016-08-12
+### Fixed
+- Fix using extension when file provided to api.resize is an image object.
+
 ## 0.5.2 - 2016-06-06
 ### Fixed
 - Add missing browser passovers for browserify.

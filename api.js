@@ -42,7 +42,7 @@ module.exports.resize = function(file, ops, config) {
   optsString = stableStringify(ops);
 
   var hash = new JSHashes.SHA1().hex(optsString);
-  var ext = path.extname(file);
+  var ext = path.extname(imgSrc);
   var outFile = hash + ext;
   var destUrl = config.urlBase + "/" + outFile;
 
