@@ -1,6 +1,5 @@
 var JSHashes = require("jshashes");
 var path = require("path");
-var _ = require("lodash");
 var stableStringify = require("json-stable-stringify");
 
 if (typeof window == "undefined") {

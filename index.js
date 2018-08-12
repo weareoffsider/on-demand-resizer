@@ -1,10 +1,8 @@
 var strategies = require("./strategies.js");
 var api = require("./api.js");
-var _ = require("lodash");
-
 
 module.exports = function(config) {
-  var config = _.merge({
+  var config = Object.assign({
     sourceType: "local",
     sourcePath: __dirname,
     destType: "local",
@@ -17,7 +15,7 @@ module.exports = function(config) {
       strategies.resizeSoft,
       strategies.quality,
     ]
-  }, config);
+  }, config)
 
   return {
     resize: function(file, ops) { return api.resize(file, ops, config); },
