@@ -57,14 +57,14 @@ module.exports.resize = function(file, ops, config) {
 
   var source = config.sourcePath + "/" + ops.path;
   var dest = config.destPath + "/" + outFile;
-  if (config.imageMagick) {
-    var sizer = gm.subClass({imageMagick: true});
-  } else {
-    var sizer = gm;
-  }
   progressCache[hash] = true;
 
   var doResize = function() {
+    if (config.imageMagick) {
+      var sizer = gm.subClass({imageMagick: true});
+    } else {
+      var sizer = gm;
+    }
     processing[hash] = true;
     console.log(hash, " :: image starting");
     switch (config.sourceType) {

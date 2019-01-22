@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.5.5 - 2019-01-22
+### Fixed
+- instantiate gm inside doResize to attempt reduction of memory footprint
+
 ## 0.5.3 - 2016-08-12
 ### Fixed
 - Fix using extension when file provided to api.resize is an image object.
