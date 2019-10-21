@@ -98,15 +98,11 @@ module.exports.resize = function(file, ops, config) {
                   return;
                 }
                 Imagemin.buffer(image, {
-                  plugins: [
-                    ImageminGifsicle({interlaced: true}),
-                    ImageminMozJpeg(),
-                    ImageminSvgo(),
-                    ImageminOptipng({optimizationLevel: 3}),
-                  ],
+                  plugins: config.imageminPlugins,
                 }).then(function(buffer) {
                   mkdirp(path.dirname(dest), function(err) {
                     if (err) { reject(err) };
+                    console.log("Saving to: ", dest)
                     fs.writeFile(dest, buffer, function(err) {
                       if (err) {
                         throw new Error(err);

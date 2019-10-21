@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.6.0 - 2019-10-22
+### Added
+- add imageminPlugins to config to allow for customisation on image optimisation
+  settings
+
 ## 0.5.5 - 2019-01-22
 ### Fixed
 - instantiate gm inside doResize to attempt reduction of memory footprint
