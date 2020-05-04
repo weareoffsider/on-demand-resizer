@@ -66,12 +66,10 @@ module.exports.resize = function(file, ops, config) {
       var sizer = gm;
     }
     processing[hash] = true;
-    console.log(hash, " :: image starting");
     switch (config.sourceType) {
       case "local":
       fs.readFile(dest, function(err, data) {
         if (err) { // rebuild image
-          console.log(hash, " :: image does not exist, building: ", source);
 
           fs.readFile(source, function(err, data) {
             if (err) {
@@ -102,12 +100,10 @@ module.exports.resize = function(file, ops, config) {
                 }).then(function(buffer) {
                   mkdirp(path.dirname(dest), function(err) {
                     if (err) { reject(err) };
-                    console.log("Saving to: ", dest)
                     fs.writeFile(dest, buffer, function(err) {
                       if (err) {
                         throw new Error(err);
                       } else {
-                        console.log(hash, " :: image complete");
                       }
                       flushProgressCache(err, hash, config.workers);
                       doneCache[hash] = destUrl;
@@ -122,7 +118,6 @@ module.exports.resize = function(file, ops, config) {
             });
           });
         } else { // return url
-          console.log(hash, " :: image exists, returning");
           flushProgressCache(err, hash, config.workers);
           doneCache[hash] = destUrl;
         }
@@ -136,7 +131,6 @@ module.exports.resize = function(file, ops, config) {
   }
 
   if (Object.keys(processing).length >= config.workers) {
-    console.log(hash, " :: image queueing");
     processQueue.push(doResize);
   } else {
     doResize();
