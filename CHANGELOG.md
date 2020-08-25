@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.7.0 - 2020-08-25
+### Changed
+- add ability to turn off stripping of profiles
+
 ## 0.6.1 - 2020-05-05
 ### Changed
 - remove console log statements, actually has impact on SSR performance

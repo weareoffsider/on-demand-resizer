@@ -19,6 +19,7 @@ module.exports = function(config) {
     urlBase: "/",
     defaultQuality: null,
     workers: 5,
+    stripProfiles: true,
     imageminPlugins: typeof window == "undefined" 
       ? [
           ImageminGifsicle({interlaced: true}),

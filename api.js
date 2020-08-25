@@ -79,7 +79,10 @@ module.exports.resize = function(file, ops, config) {
             }
 
             var stream = sizer(source);
-            stream = stream.autoOrient().noProfile();
+            stream = stream.autoOrient();
+            if (config.stripProfiles) {
+              stream = stream.noProfile();
+            }
             stream.size(function(err, orig) {
               for (var i = 0; i < config.pipeline.length; i++) {
                 var stage = config.pipeline[i];
