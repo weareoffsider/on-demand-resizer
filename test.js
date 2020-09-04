@@ -8,7 +8,7 @@ var resizer = OnDemandResizer({
   destType: "local",
   destPath: __dirname + "/outputtest",
   urlBase: "/uploads",
-  imageMagick: true,
+  sharp: true,
   defaultQuality: 80,
 });
 

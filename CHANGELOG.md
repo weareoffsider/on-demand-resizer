@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.8.0 - 2020-09-04
+### Added
+- allow resizing using sharp.
+
 ## 0.7.0 - 2020-08-25
 ### Changed
 - add ability to turn off stripping of profiles

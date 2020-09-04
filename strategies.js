@@ -1,4 +1,4 @@
-module.exports.focusCrop = function(orig, ops, stream) {
+module.exports.focusCrop = function(orig, ops, stream, useSharp) {
   if (!ops.crop || ops.crop !== "focus") return;
 
   var heightRatio = ops.height / orig.height;
@@ -27,20 +27,39 @@ module.exports.focusCrop = function(orig, ops, stream) {
   cropPoint.x = Math.min(Math.max(cropPoint.x, 0), resize.width - ops.width);
   cropPoint.y = Math.min(Math.max(cropPoint.y, 0), resize.height - ops.height);
 
-  return stream.resize(resize.width, resize.height)
-               .crop(ops.width, ops.height, cropPoint.x, cropPoint.y);
+  if (useSharp) {
+    return stream.resize(ops.width, ops.height, {
+      fit: 'cover',
+      position: 'center',
+
+//       position: (focus[0] * 100).toFixed(0) + '% ' + (focus[1] * 100).toFixed(0) + '%',
+    })
+
+  } else {
+
+    return stream.resize(resize.width, resize.height)
+                 .crop(ops.width, ops.height, cropPoint.x, cropPoint.y);
+  }
 };
 
-module.exports.resizeSoft = function(orig, ops, stream) {
+module.exports.resizeSoft = function(orig, ops, stream, useSharp) {
   if (ops.crop) return;
 
-  return stream.resize(ops.width || null, ops.height || null);
+  if (useSharp) {
+    return stream.resize(ops.width || null, ops.height || null);
+  } else {
+    return stream.resize(ops.width || null, ops.height || null);
+  }
 };
 
 
-module.exports.quality = function(orig, ops, stream) {
+module.exports.quality = function(orig, ops, stream, useSharp) {
   if (!ops.quality) return;
 
-  return stream.quality(ops.quality);
+  if (useSharp) {
+    return stream.jpeg({quality: ops.quality})
+  } else {
+    return stream.quality(ops.quality);
+  }
 };
 

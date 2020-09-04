@@ -3,6 +3,7 @@ var path = require("path");
 var stableStringify = require("json-stable-stringify");
 
 if (typeof window == "undefined") {
+  var sharp = require("sharp");
   var fs = require("fs");
   var gm = require("gm");
   var Imagemin = require("imagemin");
@@ -77,48 +78,91 @@ module.exports.resize = function(file, ops, config) {
               flushProgressCache(err, hash, config.workers);
               return;
             }
+            
+            if (config.sharp) {
+              var stream = sharp(source);
+              stream.metadata().then(function(orig) {
 
-            var stream = sizer(source);
-            stream = stream.autoOrient();
-            if (config.stripProfiles) {
-              stream = stream.noProfile();
-            }
-            stream.size(function(err, orig) {
-              for (var i = 0; i < config.pipeline.length; i++) {
-                var stage = config.pipeline[i];
-                var result = stage(orig, ops, stream);
-                if (result) {
-                  stream = result;
+                stream = stream.toColorspace("srgb");
+                for (var i = 0; i < config.pipeline.length; i++) {
+                  var stage = config.pipeline[i];
+                  var result = stage(orig, ops, stream, true);
+                  if (result) {
+                    stream = result;
+                  }
                 }
-              }
 
-              stream.toBuffer(function(err, image) {
-                if (err) {
-                  console.error("Resize Failed :: ", source);
-                  flushProgressCache(err, hash, config.workers);
-                  return;
-                }
-                Imagemin.buffer(image, {
-                  plugins: config.imageminPlugins,
-                }).then(function(buffer) {
-                  mkdirp(path.dirname(dest), function(err) {
-                    if (err) { reject(err) };
-                    fs.writeFile(dest, buffer, function(err) {
-                      if (err) {
-                        throw new Error(err);
-                      } else {
-                      }
-                      flushProgressCache(err, hash, config.workers);
-                      doneCache[hash] = destUrl;
+                stream.toBuffer(function (err, image, info) {
+                  if (err) {
+                    console.error("Resize Failed :: ", source);
+                    flushProgressCache(err, hash, config.workers);
+                    return;
+                  }
+
+                  Imagemin.buffer(image, {
+                    plugins: config.imageminPlugins,
+                  }).then(function(buffer) {
+                    mkdirp(path.dirname(dest), function(err) {
+                      if (err) { reject(err) };
+                      fs.writeFile(dest, buffer, function(err) {
+                        if (err) {
+                          throw new Error(err);
+                        } else {
+                        }
+                        flushProgressCache(err, hash, config.workers);
+                        doneCache[hash] = destUrl;
+                      });
                     });
+                  }).catch(function(err) {
+                    console.error(err);
+                    flushProgressCache(err, hash, config.workers);
                   });
-                }).catch(function(err) {
-                  console.error(err);
-                  flushProgressCache(err, hash, config.workers);
-                });
-              });
+                })
+              })
 
-            });
+            } else {
+              var stream = sizer(source);
+              stream = stream.autoOrient();
+              if (config.stripProfiles) {
+                stream = stream.noProfile();
+              }
+              stream.size(function(err, orig) {
+                for (var i = 0; i < config.pipeline.length; i++) {
+                  var stage = config.pipeline[i];
+                  var result = stage(orig, ops, stream);
+                  if (result) {
+                    stream = result;
+                  }
+                }
+
+                stream.toBuffer(function(err, image) {
+                  if (err) {
+                    console.error("Resize Failed :: ", source);
+                    flushProgressCache(err, hash, config.workers);
+                    return;
+                  }
+                  Imagemin.buffer(image, {
+                    plugins: config.imageminPlugins,
+                  }).then(function(buffer) {
+                    mkdirp(path.dirname(dest), function(err) {
+                      if (err) { reject(err) };
+                      fs.writeFile(dest, buffer, function(err) {
+                        if (err) {
+                          throw new Error(err);
+                        } else {
+                        }
+                        flushProgressCache(err, hash, config.workers);
+                        doneCache[hash] = destUrl;
+                      });
+                    });
+                  }).catch(function(err) {
+                    console.error(err);
+                    flushProgressCache(err, hash, config.workers);
+                  });
+                });
+
+              });
+            }
           });
         } else { // return url
           flushProgressCache(err, hash, config.workers);
