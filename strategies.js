@@ -28,7 +28,7 @@ module.exports.focusCrop = function(orig, ops, stream, useSharp) {
   cropPoint.y = Math.min(Math.max(cropPoint.y, 0), resize.height - ops.height);
 
   if (useSharp) {
-    return stream.resize(ops.width, ops.height, {
+    return stream.resize(Math.round(ops.width), Math.round(ops.height), {
       fit: 'cover',
       position: 'center',
 
@@ -46,7 +46,10 @@ module.exports.resizeSoft = function(orig, ops, stream, useSharp) {
   if (ops.crop) return;
 
   if (useSharp) {
-    return stream.resize(ops.width || null, ops.height || null);
+    return stream.resize(
+      ops.width ? Math.round(ops.width) : null,
+      ops.height ? Math.round(ops.height) : null
+    );
   } else {
     return stream.resize(ops.width || null, ops.height || null);
   }

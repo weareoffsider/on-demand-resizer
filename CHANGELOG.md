@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased Changes
 
+## 0.8.1 - 2020-09-04
+### Fixed
+- round height/width at all times
+
 ## 0.8.0 - 2020-09-04
 ### Added
 - allow resizing using sharp.
